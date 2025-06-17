@@ -1,39 +1,18 @@
-package com.bms.clinicmanagementsystem.model;
+@Service
+public class AppointmentService {
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.GenericGenerator;
+    @Autowired
+    private AppointmentRepository appointmentRepository;
 
-import javax.persistence.*;
-import java.time.LocalDateTime;
+    // Method explicitly named for booking appointments
+    public Appointment bookAppointment(Appointment appointment) {
+        return appointmentRepository.save(appointment);
+    }
 
-@Entity
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class Appointment {
-    @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
-    private String id;
-
-    private LocalDateTime createdTime;
-
-    private LocalDateTime startTime;
-
-    private LocalDateTime endTime;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "status_id")
-    private Status status;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "patient_case_id")
-    private PatientCase patientCase;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "in_department_id")
-    private InDepartment inDepartment;
-
+    // Retrieve appointments for a doctor on a given date
+    public List<Appointment> getAppointmentsByDoctorAndDate(Long doctorId, LocalDate date) {
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
+        return appointmentRepository.findByDoctorIdAndStartTimeBetween(doctorId, startOfDay, endOfDay);
+    }
 }
