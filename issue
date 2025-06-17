@@ -1,0 +1,16 @@
+# User Stories for Smart Clinic Management System
+
+## Doctor User Story
+As a Doctor,  
+I want to view my appointments and update my availability,  
+So that I can manage my schedule efficiently.
+
+## Patient User Story
+As a Patient,  
+I want to book appointments and view my medical records,  
+So that I can manage my healthcare effectively.
+
+## Admin User Story
+As an Admin,  
+I want to manage users and appointments,  
+So that I can maintain the system smoothly.
