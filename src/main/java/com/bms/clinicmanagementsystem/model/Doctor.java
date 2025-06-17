@@ -1,60 +1,94 @@
-package com.bms.clinicmanagementsystem.controller;
+package com.bms.clinicmanagementsystem.model;
 
-import com.bms.clinicmanagementsystem.model.TimeSlot; // Assuming you have this model
-import com.bms.clinicmanagementsystem.service.DoctorService;
-import com.bms.clinicmanagementsystem.service.TokenService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDate;
+import jakarta.persistence.*;
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/doctors")
-public class DocterController {
+@Entity
+@Table(name = "doctors")
+public class Doctor {
 
-    @Autowired
-    private DoctorService doctorService;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Autowired
-    private TokenService tokenService;
+    @Column(nullable = false)
+    private String firstName;
 
-    /**
-     * Endpoint to get doctor availability based on user role, doctor ID, date, and token.
-     * 
-     * @param role User role making the request (e.g., admin, patient)
-     * @param doctorId ID of the doctor
-     * @param date Date for which availability is requested (yyyy-MM-dd)
-     * @param token JWT token for authorization
-     * @return List of available time slots or unauthorized/error status
-     */
-    @GetMapping("/{doctorId}/availability")
-    public ResponseEntity<?> getDoctorAvailability(
-            @RequestParam String role,
-            @PathVariable Long doctorId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @RequestHeader("Authorization") String token) {
+    @Column(nullable = false)
+    private String lastName;
 
-        // Validate token
-        if (!tokenService.validateToken(token)) {
-            return new ResponseEntity<>("Invalid or expired token", HttpStatus.UNAUTHORIZED);
-        }
+    private String specialization;
 
-        // Optionally verify user role - example: only patients and admins allowed
-        if (!role.equalsIgnoreCase("admin") && !role.equalsIgnoreCase("patient")) {
-            return new ResponseEntity<>("Access denied for role: " + role, HttpStatus.FORBIDDEN);
-        }
+    @Column(unique = true, nullable = false)
+    private String email;
 
-        // Fetch availability from service
-        List<TimeSlot> availableSlots = doctorService.getDoctorAvailability(doctorId, date);
+    @Column(unique = true, nullable = false)
+    private String phone;
 
-        if (availableSlots == null || availableSlots.isEmpty()) {
-            return new ResponseEntity<>("No availability found for doctor on " + date, HttpStatus.NOT_FOUND);
-        }
+    // Available times stored as strings (could be time slots, e.g. "09:00-10:00")
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "doctor_available_times", joinColumns = @JoinColumn(name = "doctor_id"))
+    @Column(name = "available_time")
+    private List<String> availableTimes;
 
-        return ResponseEntity.ok(availableSlots);
+    public Doctor() {
+    }
+
+    // Getters and setters
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getSpecialization() {
+        return specialization;
+    }
+
+    public void setSpecialization(String specialization) {
+        this.specialization = specialization;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public List<String> getAvailableTimes() {
+        return availableTimes;
+    }
+
+    public void setAvailableTimes(List<String> availableTimes) {
+        this.availableTimes = availableTimes;
     }
 }
