@@ -13,6 +13,8 @@ import com.bms.clinicmanagementsystem.request.appointment.UpdateAppointmentReque
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -36,7 +38,8 @@ public class AppointmentService {
         this.converter = converter;
     }
 
-    public void createAppointment(final CreateAppointmentRequest request) {
+    // Renamed method for booking appointment
+    public void bookAppointment(final CreateAppointmentRequest request) {
         Appointment appointment = new Appointment();
 
         appointment.setCreatedTime(DateHelper.getCurrentDateTime());
@@ -77,6 +80,22 @@ public class AppointmentService {
 
     public List<AppointmentDto> findAllAppointments() {
         List<Appointment> appointments = appointmentRepository.findAll();
+
+        if (appointments.isEmpty()) {
+            log.error(BusinessLogMessage.Appointment.APPOINTMENT_LIST_EMPTY);
+            throw new AppointmentNotFoundException(BusinessMessage.Appointment.APPOINTMENT_LIST_EMPTY);
+        }
+
+        log.info(BusinessLogMessage.Appointment.APPOINTMENT_LIST_FOUND);
+        return converter.convert(appointments);
+    }
+
+    // New method to get appointments by doctor and date
+    public List<AppointmentDto> getAppointmentsByDoctorAndDate(Long doctorId, LocalDate date) {
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.atTime(23, 59, 59);
+
+        List<Appointment> appointments = appointmentRepository.findByDoctorIdAndStartTimeBetween(doctorId, startOfDay, endOfDay);
 
         if (appointments.isEmpty()) {
             log.error(BusinessLogMessage.Appointment.APPOINTMENT_LIST_EMPTY);
