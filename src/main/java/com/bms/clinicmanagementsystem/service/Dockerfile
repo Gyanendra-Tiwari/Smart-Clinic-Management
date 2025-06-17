@@ -1,18 +1,29 @@
+# Stage 1: Build the application
+FROM maven:3.8.6-openjdk-17-slim AS build
 
-# Use a lightweight OpenJDK image
-FROM openjdk:17-jdk-slim
-
-# Set application JAR name (adjust this to your actual JAR name)
-ARG JAR_FILE=target/clinic-management-system.jar
-
-# Set working directory in the container
+# Set working directory
 WORKDIR /app
 
-# Copy the jar file from the build context to the container
-COPY ${JAR_FILE} app.jar
+# Copy pom.xml and download dependencies (to leverage Docker cache)
+COPY pom.xml .
+RUN mvn dependency:go-offline
 
-# Expose the port your Spring Boot app runs on (usually 8080)
+# Copy source code
+COPY src ./src
+
+# Build the Spring Boot jar
+RUN mvn clean package -DskipTests
+
+# Stage 2: Run the application
+FROM openjdk:17-jdk-slim
+
+WORKDIR /app
+
+# Copy the jar file from the build stage
+COPY --from=build /app/target/clinic-management-system.jar app.jar
+
+# Expose the application port
 EXPOSE 8080
 
-# Command to run the application
+# Run the jar file
 ENTRYPOINT ["java", "-jar", "app.jar"]
