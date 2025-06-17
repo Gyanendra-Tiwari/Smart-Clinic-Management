@@ -20,21 +20,31 @@ public class TokenService {
         this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
-    // Generate JWT Token
-    public String generateToken(String username) {
+    /**
+     * Generate JWT Token using user's email as subject.
+     * 
+     * @param email the user's email
+     * @return generated JWT token string
+     */
+    public String generateToken(String email) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
 
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(email)         // Use email instead of username
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // Extract username from JWT
-    public String getUsernameFromToken(String token) {
+    /**
+     * Extract email from JWT token.
+     * 
+     * @param token the JWT token
+     * @return email embedded in token
+     */
+    public String getEmailFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
@@ -43,7 +53,12 @@ public class TokenService {
                 .getSubject();
     }
 
-    // Validate JWT Token
+    /**
+     * Validate JWT token.
+     * 
+     * @param token the JWT token to validate
+     * @return true if valid, false otherwise
+     */
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
@@ -52,7 +67,7 @@ public class TokenService {
                 .parseClaimsJws(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
-            // log the error in real apps
+            // Ideally log the exception for debugging
             return false;
         }
     }
